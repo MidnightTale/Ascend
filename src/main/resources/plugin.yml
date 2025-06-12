@@ -4,3 +4,6 @@ main: fun.mntale.ascend.Ascend
 api-version: '1.21'
 authors: [ MidnightTale_ ]
 website: https://mntale.fun
+folia-supported: true
+depends:
+  - packetevents
