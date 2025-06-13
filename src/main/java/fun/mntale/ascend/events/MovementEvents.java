@@ -108,14 +108,12 @@ public class MovementEvents implements Listener {
             if (block.getX() == targetLocation.getBlockX() &&
                 block.getY() == targetLocation.getBlockY() &&
                 block.getZ() == targetLocation.getBlockZ()) {
-                player.sendMessage("§cYou are already at the target location!");
                 return;
             }
 
             // Check if player is already in any state before proceeding
             if (Ascend.instance.getPlayerManager().isPlayerTeleporting(uuid) || 
                 Ascend.instance.getPlayerManager().hasCountdownTask(uuid)) {
-                player.sendMessage("§cYou are already in the process of teleporting!");
                 return;
             }
 
