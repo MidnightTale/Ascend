@@ -283,6 +283,9 @@ public class PlayerManager {
             return;
         }
 
+        // Store the launch location for potential return
+        storeLaunchLocation(uuid, startLocation.clone().add(0.5, 1, 0.5));
+
         // Calculate distance and required Eyes of Ender
         Location currentLocEnder = player.getLocation();
         double distance = currentLocEnder.distance(targetLocation);
@@ -452,14 +455,15 @@ public class PlayerManager {
                             centerPositions.remove(uuid);
                             
                             // Teleport back to launch location
-                            if (startLocation != null) {
+                            Location launchLoc = getStoredLaunchLocation(uuid);
+                            if (launchLoc != null) {
                                 FoliaScheduler.getEntityScheduler().run(player, Ascend.instance, (t42) -> {
-                                    player.teleportAsync(startLocation);
+                                    player.teleportAsync(launchLoc);
                                     player.removePotionEffect(PotionEffectType.LEVITATION);
                                     // Play failure sound
-                                    startLocation.getWorld().playSound(startLocation, org.bukkit.Sound.BLOCK_BEACON_DEACTIVATE, 0.8f, 1.5f);
+                                    launchLoc.getWorld().playSound(launchLoc, org.bukkit.Sound.BLOCK_BEACON_DEACTIVATE, 0.8f, 1.5f);
                                     // Spawn failure particles
-                                    ParticleEffects.spawnLaunchExplosion(startLocation);
+                                    ParticleEffects.spawnLaunchExplosion(launchLoc);
                                 }, null);
                             }
                             return;
