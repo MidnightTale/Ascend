@@ -10,16 +10,21 @@ public class DamageEvents implements Listener {
     @EventHandler
     public void onEntityDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player player) {
-            // Cancel all damage if player is teleporting
+            // Cancel fall damage if player is teleporting
             if (Ascend.instance.getPlayerManager().isPlayerTeleporting(player.getUniqueId())) {
-                event.setCancelled(true);
+                if (event.getCause() == EntityDamageEvent.DamageCause.FALL) {
+                    event.setCancelled(true);
+                    Ascend.instance.debug("Cancelled fall damage for teleporting player " + player.getUniqueId());
+                }
                 return;
             }
 
             // Cancel countdown if player takes damage
             if (Ascend.instance.getPlayerManager().hasCountdownTask(player.getUniqueId())) {
+                Ascend.instance.debug("Player " + player.getUniqueId() + " took damage during countdown");
                 Ascend.instance.getPlayerManager().cancelCountdown(player.getUniqueId());
-                player.sendMessage("§cCountdown cancelled due to damage!");
+                String message = "§cCountdown cancelled due to damage!";
+                Ascend.instance.debugPlayerMessage(player, message);
             }
         }
     }

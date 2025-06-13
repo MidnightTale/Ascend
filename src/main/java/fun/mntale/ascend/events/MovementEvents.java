@@ -1,6 +1,8 @@
 package fun.mntale.ascend.events;
 
 import fun.mntale.ascend.Ascend;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
+
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -9,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.Location;
 
 import java.util.UUID;
@@ -37,14 +40,22 @@ public class MovementEvents implements Listener {
         if (Ascend.instance.getPlayerManager().hasCountdownTask(uuid)) {
             Block standingBlock = player.getLocation().subtract(0, 1, 0).getBlock();
             if (standingBlock.getType() != Material.LODESTONE) {
+                Ascend.instance.debug("Player " + uuid + " moved away from lodestone during countdown");
                 Ascend.instance.getPlayerManager().cancelCountdown(uuid);
-                player.sendMessage("§cLaunch cancelled - you moved away from the lodestone!");
+                FoliaScheduler.getRegionScheduler().run(Ascend.instance, player.getLocation(), (t18) -> 
+                    player.getLocation().getWorld().playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_DEACTIVATE, 0.8f, 1.5f)
+                );
+                FoliaScheduler.getEntityScheduler().runDelayed(player, Ascend.instance, (t19) -> player.removePotionEffect(PotionEffectType.GLOWING),null, 60);
+
+                String message = "§cLaunch cancelled - you moved away from the lodestone!";
+                Ascend.instance.debugPlayerMessage(player, message);
             }
             return; // Always return if in countdown, regardless of block type
         }
 
         // If player is in the process of starting a countdown, ignore this event
         if (Ascend.instance.getPlayerManager().isPlayerStartingCountdown(uuid)) {
+            Ascend.instance.debug("Ignoring movement for player " + uuid + " during countdown start");
             return;
         }
 
@@ -55,6 +66,25 @@ public class MovementEvents implements Listener {
 
         Block block = player.getLocation().subtract(0, 1, 0).getBlock();
         if (block.getType() != Material.LODESTONE) {
+            return;
+        }
+        // Check source lodestone setup
+        String sourceError = Ascend.instance.getPlayerManager().validateLodestoneSetup(player.getLocation().subtract(0, 1, 0));
+        if (sourceError != null) {
+            Ascend.instance.debug("Invalid source lodestone setup for player " + uuid + ": " + sourceError);
+            String message = "§cInvalid source lodestone setup! " + sourceError + ".";
+            
+            Ascend.instance.debugPlayerMessage(player, message);
+            return;
+        }
+
+        // Check target lodestone setup
+        String targetError = Ascend.instance.getPlayerManager().validateLodestoneSetup(player.getLocation().subtract(0, 1, 0));
+        if (targetError != null) {
+            Ascend.instance.debug("Invalid target lodestone setup for player " + uuid + ": " + targetError);
+            String message = "§cInvalid target lodestone setup! " + targetError + ".";
+            
+            Ascend.instance.debugPlayerMessage(player, message);
             return;
         }
 

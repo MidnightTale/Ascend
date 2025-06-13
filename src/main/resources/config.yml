@@ -1,0 +1,4 @@
+# Ascend Plugin Configuration
+
+# Enable debug mode to see detailed logging messages
+debug-mode: false 

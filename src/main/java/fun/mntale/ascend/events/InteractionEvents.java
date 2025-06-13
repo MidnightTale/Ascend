@@ -25,7 +25,8 @@ public class InteractionEvents implements Listener {
             // If player is using an ender pearl, cancel the event
             if (item != null && item.getType() == Material.ENDER_PEARL) {
                 event.setCancelled(true);
-                player.sendMessage("§cYou cannot use ender pearls while teleporting!");
+                String message = "§cYou cannot use ender pearls while teleporting!";
+                Ascend.instance.debugPlayerMessage(player, message);
             }
         }
     }
@@ -38,7 +39,8 @@ public class InteractionEvents implements Listener {
                 Ascend.instance.getPlayerManager().hasCountdownTask(player.getUniqueId())) {
                 
                 event.setCancelled(true);
-                player.sendMessage("§cYou cannot mount entities while teleporting!");
+                String message = "§cYou cannot mount entities while teleporting!";
+                Ascend.instance.debugPlayerMessage(player, message);
             }
         }
     }
@@ -54,7 +56,8 @@ public class InteractionEvents implements Listener {
                 Ascend.instance.getPlayerManager().hasCountdownTask(player.getUniqueId())) {
                 
                 event.setCancelled(true);
-                player.sendMessage("§cYou cannot use ender pearls while teleporting!");
+                String message = "§cYou cannot use ender pearls while teleporting!";
+                Ascend.instance.debugPlayerMessage(player, message);
             }
         }
     }
@@ -68,7 +71,8 @@ public class InteractionEvents implements Listener {
             Ascend.instance.getPlayerManager().hasCountdownTask(player.getUniqueId())) {
             
             event.setCancelled(true);
-            player.sendMessage("§cYou cannot enter a bed while teleporting!");
+            String message = "§cYou cannot enter a bed while teleporting!";
+            Ascend.instance.debugPlayerMessage(player, message);
         }
     }
 } 

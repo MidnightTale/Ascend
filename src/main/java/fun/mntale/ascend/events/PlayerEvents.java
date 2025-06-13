@@ -1,6 +1,8 @@
 package fun.mntale.ascend.events;
 
 import fun.mntale.ascend.Ascend;
+import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,6 +22,7 @@ public class PlayerEvents implements Listener {
         
         // If player was teleporting, store their locations
         if (Ascend.instance.getPlayerManager().isPlayerTeleporting(uuid)) {
+            Ascend.instance.debug("Player " + uuid + " quit while teleporting, storing location");
             Ascend.instance.getPlayerManager().storeLaunchLocation(uuid, Ascend.instance.getPlayerManager().getCenterPosition(uuid));
         }
         
@@ -47,7 +50,12 @@ public class PlayerEvents implements Listener {
             // Teleport player back to their launch position
             player.removePotionEffect(PotionEffectType.LEVITATION);
             player.teleportAsync(launchLoc);
-            player.sendMessage("§eYou have been returned to your launch location.");
+            String message = "§eYou have been returned to your launch location.";
+            
+            Ascend.instance.debugPlayerMessage(player, message);
+            FoliaScheduler.getRegionScheduler().run(Ascend.instance, launchLoc, (t16) -> 
+                    launchLoc.getWorld().playSound(launchLoc, org.bukkit.Sound.BLOCK_BEACON_DEACTIVATE, 0.8f, 1.5f)
+                );
         }
     }
 } 
