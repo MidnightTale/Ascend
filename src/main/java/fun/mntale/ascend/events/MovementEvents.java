@@ -57,7 +57,16 @@ public class MovementEvents implements Listener {
 
         // If player is in the process of starting a countdown, ignore this event
         if (Ascend.instance.getPlayerManager().isPlayerStartingCountdown(uuid)) {
-            Ascend.instance.debug("Ignoring movement for player " + uuid + " during countdown start");
+            Block standingBlock = player.getLocation().subtract(0, 1, 0).getBlock();
+            if (standingBlock.getType() != Material.LODESTONE) {
+                Ascend.instance.debug("Player " + uuid + " moved away from lodestone during startup animation");
+                Ascend.instance.getPlayerManager().removeFromStartingCountdown(uuid);
+                FoliaScheduler.getRegionScheduler().run(Ascend.instance, player.getLocation(), (t18) -> 
+                    player.getLocation().getWorld().playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_DEACTIVATE, 0.8f, 1.5f)
+                );
+                String message = "§cLaunch cancelled - you moved away from the lodestone!";
+                Ascend.instance.debugPlayerMessage(player, message);
+            }
             return;
         }
 

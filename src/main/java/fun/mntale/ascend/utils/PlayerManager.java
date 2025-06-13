@@ -262,7 +262,7 @@ public class PlayerManager {
                 });
                 // Store the starting position
                 centerPositions.put(uuid, startLocation.add(0.5, 1, 0.5));
-                launchPlayer(player, uuid, targetLocation);
+                launchPlayer(player, uuid, targetLocation, startLocation);
                 countdownTask[0].cancel();
                 countdownTasks.remove(uuid);
                 startingCountdown.remove(uuid);
@@ -275,7 +275,7 @@ public class PlayerManager {
         Ascend.instance.debug("Started countdown task for player " + uuid);
     }
 
-    private void launchPlayer(Player player, UUID uuid, Location targetLocation) {
+    private void launchPlayer(Player player, UUID uuid, Location targetLocation, Location startLocation) {
         // Safety check - if player is no longer online, don't proceed
         if (!player.isOnline()) {
             teleportingPlayers.remove(uuid);
@@ -452,15 +452,14 @@ public class PlayerManager {
                             centerPositions.remove(uuid);
                             
                             // Teleport back to launch location
-                            Location launchLoc = centerPositions.get(uuid);
-                            if (launchLoc != null) {
+                            if (startLocation != null) {
                                 FoliaScheduler.getEntityScheduler().run(player, Ascend.instance, (t42) -> {
-                                    player.teleportAsync(launchLoc);
+                                    player.teleportAsync(startLocation);
                                     player.removePotionEffect(PotionEffectType.LEVITATION);
                                     // Play failure sound
-                                    launchLoc.getWorld().playSound(launchLoc, org.bukkit.Sound.BLOCK_BEACON_DEACTIVATE, 0.8f, 1.5f);
+                                    startLocation.getWorld().playSound(startLocation, org.bukkit.Sound.BLOCK_BEACON_DEACTIVATE, 0.8f, 1.5f);
                                     // Spawn failure particles
-                                    ParticleEffects.spawnLaunchExplosion(launchLoc);
+                                    ParticleEffects.spawnLaunchExplosion(startLocation);
                                 }, null);
                             }
                             return;
