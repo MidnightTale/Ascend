@@ -13,6 +13,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.Location;
+import org.bukkit.Sound;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.UUID;
 
@@ -111,25 +113,57 @@ public class MovementEvents implements Listener {
             // Mark player as starting countdown
             Ascend.instance.getPlayerManager().addToStartingCountdown(uuid);
 
-            // Check for blocks above both lodestones
-            Ascend.instance.getPlayerManager().hasBlocksAbove(block.getLocation()).thenAccept(hasBlocks -> {
-                if (hasBlocks) {
-                    player.sendMessage("§cThere are blocks above the starting lodestone!");
-                    Ascend.instance.getPlayerManager().removeFromStartingCountdown(uuid);
-                    return;
-                }
-                
-                Ascend.instance.getPlayerManager().hasBlocksAbove(targetLocation).thenAccept(hasTargetBlocks -> {
-                    if (hasTargetBlocks) {
-                        player.sendMessage("§cThere are blocks above the target lodestone!");
+            // Calculate distance and required Eyes of Ender
+            final Location currentLoc = player.getLocation();
+            final double distance = currentLoc.distance(targetLocation);
+            final int requiredEyes = Math.max(1, (int) Math.ceil(distance / 1000.0) * 2 - 1);
+
+            // Start animation sequence
+            FoliaScheduler.getEntityScheduler().run(player, Ascend.instance, (t1) -> {
+                player.sendActionBar(MiniMessage.miniMessage().deserialize("<gradient:#FFD700:#FFA500>Calculating distance to target...</gradient>"));
+                player.playSound(player.getLocation(), Sound.BLOCK_BEACON_AMBIENT, 0.5f, 1.0f);
+            }, null);
+
+            FoliaScheduler.getEntityScheduler().runDelayed(player, Ascend.instance, (t2) -> {
+                player.sendActionBar(MiniMessage.miniMessage().deserialize("<gradient:#FFD700:#FFA500>Distance: </gradient><gradient:#FFFFFF:#E0E0E0>" + String.format("%.1f", distance) + " blocks</gradient>"));
+                player.playSound(player.getLocation(), Sound.BLOCK_BEACON_AMBIENT, 0.5f, 1.2f);
+            }, null, 20);
+
+            FoliaScheduler.getEntityScheduler().runDelayed(player, Ascend.instance, (t3) -> {
+                player.sendActionBar(MiniMessage.miniMessage().deserialize("<gradient:#FFD700:#FFA500>Required Eyes of Ender: </gradient><gradient:#00FF00:#00CC00>" + requiredEyes + "</gradient>"));
+                player.playSound(player.getLocation(), Sound.BLOCK_BEACON_AMBIENT, 0.5f, 1.4f);
+            }, null, 40);
+
+            FoliaScheduler.getEntityScheduler().runDelayed(player, Ascend.instance, (t4) -> {
+                player.sendActionBar(MiniMessage.miniMessage().deserialize("<gradient:#FFD700:#FFA500>Initializing launch sequence...</gradient>"));
+                player.playSound(player.getLocation(), Sound.BLOCK_BEACON_AMBIENT, 0.5f, 1.6f);
+            }, null, 60);
+
+            // Check for blocks above both lodestones after animation
+            FoliaScheduler.getEntityScheduler().runDelayed(player, Ascend.instance, (t5) -> {
+                Ascend.instance.getPlayerManager().hasBlocksAbove(block.getLocation()).thenAccept(hasBlocks -> {
+                    if (hasBlocks) {
+                        player.sendActionBar(MiniMessage.miniMessage().deserialize("<gradient:#FF0000:#CC0000>Launch cancelled - blocks detected above starting lodestone!</gradient>"));
+                        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5f, 1.0f);
                         Ascend.instance.getPlayerManager().removeFromStartingCountdown(uuid);
                         return;
                     }
                     
-                    // Start countdown
-                    Ascend.instance.getPlayerManager().startCountdown(player, uuid, targetLocation, block.getLocation());
+                    Ascend.instance.getPlayerManager().hasBlocksAbove(targetLocation).thenAccept(hasTargetBlocks -> {
+                        if (hasTargetBlocks) {
+                            player.sendActionBar(MiniMessage.miniMessage().deserialize("<gradient:#FF0000:#CC0000>Launch cancelled - blocks detected above target lodestone!</gradient>"));
+                            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5f, 1.0f);
+                            Ascend.instance.getPlayerManager().removeFromStartingCountdown(uuid);
+                            return;
+                        }
+                        
+                        // Start countdown
+                        player.sendActionBar(MiniMessage.miniMessage().deserialize("<gradient:#00FF00:#00CC00>Launch sequence ready!</gradient>"));
+                        player.playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 0.8f, 1.0f);
+                        Ascend.instance.getPlayerManager().startCountdown(player, uuid, targetLocation, block.getLocation());
+                    });
                 });
-            });
+            }, null, 80);
         }
     }
 } 

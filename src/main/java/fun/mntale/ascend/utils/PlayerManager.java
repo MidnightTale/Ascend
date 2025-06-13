@@ -12,7 +12,7 @@ import fun.mntale.ascend.Ascend;
 import fun.mntale.ascend.effects.ParticleEffects;
 import io.github.retrooper.packetevents.util.folia.FoliaScheduler;
 import io.github.retrooper.packetevents.util.folia.TaskWrapper;
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -298,8 +298,8 @@ public class PlayerManager {
         }
 
         if (availableEyes < requiredEyes) {
-            String message = "Launch cancelled - you need " + requiredEyes + " Eye" + (requiredEyes > 1 ? "s" : "") + " of Ender to launch this distance!";
-            player.sendActionBar(Component.text(message));
+            String message = "<gradient:#FF0000:#CC0000>Launch cancelled - you need " + requiredEyes + " Eye" + (requiredEyes > 1 ? "s" : "") + " of Ender to launch this distance!</gradient>";
+            player.sendActionBar(MiniMessage.miniMessage().deserialize(message));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.5f, 1.0f);
             cancelCountdown(uuid);
             removeFromStartingCountdown(uuid);
@@ -327,8 +327,8 @@ public class PlayerManager {
         player.playSound(player.getLocation(), Sound.ENTITY_ENDER_EYE_LAUNCH, (float) 0.8, 1.0f);
 
         // Show cost in action bar
-        String costMessage = "Used " + requiredEyes + " Eye" + (requiredEyes > 1 ? "s" : "") + " of Ender for this launch";
-        player.sendActionBar(Component.text(costMessage));
+        String costMessage = "<gradient:#00FF00:#00CC00>Used " + requiredEyes + " Eye" + (requiredEyes > 1 ? "s" : "") + " of Ender for this launch</gradient>";
+        player.sendActionBar(MiniMessage.miniMessage().deserialize(costMessage));
 
         teleportingPlayers.add(uuid);
         
