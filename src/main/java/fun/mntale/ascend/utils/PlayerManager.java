@@ -213,15 +213,13 @@ public class PlayerManager {
                 for (int height = 0; height <= 16; height++) {
                     Location blockLoc = playerLoc.clone().add(0, height, 0);
                     if (blockLoc.getBlock().getType().isSolid()) {
-                        // Drop the block items before setting to air
+                        // Get block data and sound before breaking
+                        var blockData = blockLoc.getBlock().getBlockData();
+                        var soundGroup = blockData.getSoundGroup();
+                        // Play block break sound
+                        blockLoc.getWorld().playSound(blockLoc, soundGroup.getBreakSound(), 1.0f, 1.0f);
+                        // Drop the block items
                         blockLoc.getBlock().breakNaturally();
-                        // Spawn breaking particles
-                        blockLoc.getWorld().spawnParticle(
-                            Particle.BLOCK,
-                            blockLoc.add(0.5, 0.5, 0.5),
-                            10, 0.3, 0.3, 0.3, 0,
-                            blockLoc.getBlock().getBlockData()
-                        );
                     }
                 }
             });
@@ -272,20 +270,21 @@ public class PlayerManager {
                         // Check and destroy blocks in player's path during descent
                         FoliaScheduler.getRegionScheduler().run(Ascend.instance, player.getLocation(), (t3) -> {
                             Location playerLoc = player.getLocation();
-                            // Check blocks in a 2x2 area around the player
-                            for (int x = -1; x <= 0; x++) {
-                                for (int z = -1; z <= 0; z++) {
-                                    Location blockLoc = playerLoc.clone().add(x, 0, z);
-                                    if (blockLoc.getBlock().getType().isSolid()) {
-                                        blockLoc.getBlock().setType(Material.AIR);
-                                        // Spawn breaking particles
-                                        blockLoc.getWorld().spawnParticle(
-                                            Particle.BLOCK,
-                                            blockLoc.add(0.5, 0.5, 0.5),
-                                            10, 0.3, 0.3, 0.3, 0,
-                                            blockLoc.getBlock().getBlockData()
-                                        );
-                                    }
+                            // Check blocks in a 1x16x1 column below the player, but stop at target lodestone level
+                            for (int height = 0; height >= -16; height--) {
+                                Location blockLoc = playerLoc.clone().add(0, height, 0);
+                                // Stop if we've reached the target lodestone's Y level
+                                if (blockLoc.getBlockY() <= targetLocation.getBlockY()) {
+                                    break;
+                                }
+                                if (blockLoc.getBlock().getType().isSolid()) {
+                                    // Get block data and sound before breaking
+                                    var blockData = blockLoc.getBlock().getBlockData();
+                                    var soundGroup = blockData.getSoundGroup();
+                                    // Play block break sound
+                                    blockLoc.getWorld().playSound(blockLoc, soundGroup.getBreakSound(), 1.0f, 1.0f);
+                                    // Drop the block items
+                                    blockLoc.getBlock().breakNaturally();
                                 }
                             }
                         });
