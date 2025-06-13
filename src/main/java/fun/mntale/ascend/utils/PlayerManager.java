@@ -159,9 +159,7 @@ public class PlayerManager {
             if (countdown[0] > 0) {
                 player.sendMessage("§eLaunching in §c" + countdown[0] + "§e...");
                 // Spawn particles during countdown - use RegionScheduler for particle effects
-                FoliaScheduler.getRegionScheduler().run(Ascend.instance, startLocation, (t2) -> {
-                    ParticleEffects.spawnCountdownParticles(startLocation);
-                });
+                FoliaScheduler.getRegionScheduler().run(Ascend.instance, startLocation, (t2) -> ParticleEffects.spawnCountdownParticles(startLocation));
                 countdown[0]--;
             } else {
                 player.sendMessage("§aLaunch!");
@@ -191,14 +189,10 @@ public class PlayerManager {
         teleportingPlayers.add(uuid);
         
         // Create explosion effect at launch - use RegionScheduler for particle effects
-        FoliaScheduler.getRegionScheduler().run(Ascend.instance, player.getLocation(), (t) -> {
-            ParticleEffects.spawnLaunchExplosion(player.getLocation());
-        });
+        FoliaScheduler.getRegionScheduler().run(Ascend.instance, player.getLocation(), (t) -> ParticleEffects.spawnLaunchExplosion(player.getLocation()));
         
         // Add levitation effect - use EntityScheduler for entity operations
-        FoliaScheduler.getEntityScheduler().run(player, Ascend.instance, (t) -> {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, -1, 127, false, false));
-        }, null);
+        FoliaScheduler.getEntityScheduler().run(player, Ascend.instance, (t) -> player.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, -1, 127, false, false)), null);
         
         final TaskWrapper[] taskWrapper = new TaskWrapper[1];
         taskWrapper[0] = FoliaScheduler.getEntityScheduler().runAtFixedRate(player, Ascend.instance, (t) -> {
@@ -215,36 +209,31 @@ public class PlayerManager {
             // Check and destroy blocks in player's path
             FoliaScheduler.getRegionScheduler().run(Ascend.instance, player.getLocation(), (t2) -> {
                 Location playerLoc = player.getLocation();
-                // Check blocks in a 2x2 area around the player
-                for (int x = -1; x <= 0; x++) {
-                    for (int z = -1; z <= 0; z++) {
-                        Location blockLoc = playerLoc.clone().add(x, 0, z);
-                        if (blockLoc.getBlock().getType().isSolid()) {
-                            blockLoc.getBlock().setType(Material.AIR);
-                            // Spawn breaking particles
-                            blockLoc.getWorld().spawnParticle(
-                                Particle.BLOCK,
-                                blockLoc.add(0.5, 0.5, 0.5),
-                                10, 0.3, 0.3, 0.3, 0,
-                                blockLoc.getBlock().getBlockData()
-                            );
-                        }
+                // Check blocks in a 1x16x1 column above the player
+                for (int height = 0; height <= 16; height++) {
+                    Location blockLoc = playerLoc.clone().add(0, height, 0);
+                    if (blockLoc.getBlock().getType().isSolid()) {
+                        // Drop the block items before setting to air
+                        blockLoc.getBlock().breakNaturally();
+                        // Spawn breaking particles
+                        blockLoc.getWorld().spawnParticle(
+                            Particle.BLOCK,
+                            blockLoc.add(0.5, 0.5, 0.5),
+                            10, 0.3, 0.3, 0.3, 0,
+                            blockLoc.getBlock().getBlockData()
+                        );
                     }
                 }
             });
             
             if (y >= Ascend.LAUNCH_HEIGHT) {
                 // Add darkness effect - use EntityScheduler for entity operations
-                FoliaScheduler.getEntityScheduler().run(player, Ascend.instance, (t2) -> {
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 2 * 20, 0, false, false));
-                }, null);
+                FoliaScheduler.getEntityScheduler().run(player, Ascend.instance, (t2) -> player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 2 * 20, 0, false, false)), null);
             }
             
             if (y >= Ascend.TELEPORT_HEIGHT) {
                 // Remove levitation effect - use EntityScheduler for entity operations
-                FoliaScheduler.getEntityScheduler().run(player, Ascend.instance, (t2) -> {
-                    player.removePotionEffect(PotionEffectType.LEVITATION);
-                }, null);
+                FoliaScheduler.getEntityScheduler().run(player, Ascend.instance, (t2) -> player.removePotionEffect(PotionEffectType.LEVITATION), null);
                 
                 // Create new location with original pitch and yaw
                 float originalYaw = player.getLocation().getYaw();
@@ -260,13 +249,9 @@ public class PlayerManager {
                 );
                 
                 // Spawn portal particles at both locations - use RegionScheduler for particle effects
-                FoliaScheduler.getRegionScheduler().run(Ascend.instance, player.getLocation(), (t2) -> {
-                    ParticleEffects.spawnSinglePortalEffect(player.getLocation());
-                });
+                FoliaScheduler.getRegionScheduler().run(Ascend.instance, player.getLocation(), (t2) -> ParticleEffects.spawnSinglePortalEffect(player.getLocation()));
                 
-                FoliaScheduler.getRegionScheduler().run(Ascend.instance, finalLocation, (t2) -> {
-                    ParticleEffects.spawnSinglePortalEffect(finalLocation);
-                });
+                FoliaScheduler.getRegionScheduler().run(Ascend.instance, finalLocation, (t2) -> ParticleEffects.spawnSinglePortalEffect(finalLocation));
                 
                 if (player.isOnline()) {
                     player.teleportAsync(finalLocation);
